@@ -53,7 +53,7 @@ class Parser(object):
 
     @staticmethod
     def proto(proto: str) -> str:
-        protos = {"tcp", "udp", "icmp", "ip"}
+        protos = {"tcp", "udp", "icmp", "ip", "http", "ssl"}
 
         if proto.lower() in protos:
             return proto
@@ -342,7 +342,7 @@ class Parser(object):
         header = list(filter(None, header))
         header_dict = collections.OrderedDict()
         size = len(header)
-        if not size == 7 and not size == 1:
+        if not size == 7 and not size == 1 and not size == 2:
             msg = "Snort rule header is malformed %s" % header
             raise ValueError(msg)
 
@@ -387,6 +387,20 @@ class Parser(object):
                 dst_port = self.port(item)
                 header_dict["dst_port"] = dst_port
                 continue
+
+        # Fill defaults if missing
+        if "proto" not in header_dict:
+            header_dict["proto"] = "ip"
+        if "source" not in header_dict:
+            header_dict["source"] = (True, "any")
+        if "src_port" not in header_dict:
+            header_dict["src_port"] = (True, "any")
+        if "arrow" not in header_dict:
+            header_dict["arrow"] = "->"
+        if "destination" not in header_dict:
+            header_dict["destination"] = (True, "any")
+        if "dst_port" not in header_dict:
+            header_dict["dst_port"] = (True, "any")
 
         return header_dict
 

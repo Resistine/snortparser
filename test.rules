@@ -1,0 +1,49 @@
+# TODO: IDK HOW TO MARK THE COPYRIGHT - these are GPLv2:
+
+alert tcp $HOME_NET 2589 -> $EXTERNAL_NET any ( msg:"MALWARE-BACKDOOR - Dagger_1.4.0"; flow:to_client,established; content:"2|00 00 00 06 00 00 00|Drives|24 00|",depth 16; metadata:ruleset community; classtype:misc-activity; sid:105; rev:14; )
+alert tcp $EXTERNAL_NET any -> $HTTP_SERVERS $HTTP_PORTS ( msg:"SERVER-WEBAPP shopping cart directory traversal"; flow:to_server,established; http_uri; content:"/shop.cgi"; pkt_data; content:"page=../"; metadata:ruleset community; service:http; reference:bugtraq,1777; reference:cve,2000-0921; classtype:web-application-attack; sid:1089; rev:16; )
+alert tcp $EXTERNAL_NET any -> $HTTP_SERVERS $HTTP_PORTS ( msg:"SERVER-WEBAPP Allaire Pro Web Shell attempt"; flow:to_server,established; http_uri; content:"/authenticate.cgi?PASSWORD",fast_pattern,nocase; pkt_data; content:"config.ini"; metadata:ruleset community; service:http; reference:url,attack.mitre.org/techniques/T1100; classtype:web-application-attack; sid:1090; rev:18; )
+alert tcp $EXTERNAL_NET any -> $HOME_NET $HTTP_PORTS ( msg:"SERVER-OTHER Apache Log4j logging remote code execution attempt"; flow:to_server,established; http_cookie; content:"${",fast_pattern,nocase; http_uri; content:"|2F|"; http_cookie; pcre:"/\x24\x7b(jndi|[^\x7d\x80-\xff]*?\x24\x7b[^\x7d]*?\x3a[^\x7d]*?\x7d)/i"; metadata:policy balanced-ips drop,policy connectivity-ips drop,policy max-detect-ips drop,policy security-ips drop,ruleset community; service:http; reference:cve,2021-44228; reference:cve,2021-44832; reference:cve,2021-45046; reference:cve,2021-45105; classtype:attempted-user; sid:300061; rev:1; )
+alert tcp $EXTERNAL_NET any -> $HOME_NET $HTTP_PORTS ( msg:"SERVER-WEBAPP F5 BIG-IP iControl remote code execution attempt"; flow:to_server,established; http_header; content:"Connection|3A|",nocase; content:"X-F5-Auth",distance 0,fast_pattern,nocase; pcre:"/^Connection:[^\r\n]*?X-F5-Auth/im"; metadata:policy balanced-ips drop,policy max-detect-ips drop,policy security-ips drop,ruleset community; service:http; reference:cve,2022-1388; classtype:attempted-user; sid:300131; rev:2; )
+alert ssl ( msg:"SERVER-OTHER OpenSSL x509 crafted email address buffer overflow attempt"; flow:established; content:"|06 03 55 1D 1E|"; ber_skip:0x01,optional; ber_data:0x04; ber_data:0x30; ber_data:0xa1; ber_data:0x30; content:"|81 82|",within 2; byte_test:2,>,500,0,relative; content:"xn--",within 4,distance 2,fast_pattern; metadata:policy balanced-ips drop,policy connectivity-ips drop,policy max-detect-ips drop,policy security-ips drop,ruleset community; reference:cve,2022-3602; reference:cve,2022-3786; reference:url,blog.talosintelligence.com/openssl-vulnerability/; classtype:attempted-user; gid:1; sid:300306; rev:3; )
+
+
+# Emerging Threats 
+#
+# This distribution may contain rules under three different licenses. 
+#
+#  Rules with sids 1 through 3464, and 100000000 through 100000908 are under the GPLv2.
+#  A copy of that license is available at http://www.gnu.org/licenses/gpl-2.0.html
+#
+#  Rules with sids 2000000 through 2799999 are from Emerging Threats and are covered under the BSD License 
+#  as follows:
+#
+#*************************************************************
+#  Copyright (c) 2003-2025, Emerging Threats
+#  All rights reserved.
+#  
+#  Redistribution and use in source and binary forms, with or without modification, are permitted provided that the 
+#  following conditions are met:
+#  
+#  * Redistributions of source code must retain the above copyright notice, this list of conditions and the following 
+#    disclaimer.
+#  * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the 
+#    following disclaimer in the documentation and/or other materials provided with the distribution.
+#  * Neither the name of the nor the names of its contributors may be used to endorse or promote products derived 
+#    from this software without specific prior written permission.
+#  
+#  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS AS IS AND ANY EXPRESS OR IMPLIED WARRANTIES, 
+#  INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE 
+#  DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, 
+#  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR 
+#  SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
+#  WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE 
+#  USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
+#
+#*************************************************************
+#
+#
+#  Rules with sids 2800000 through 2900000 are provided by Emerging Threats Pro and are covered by the license
+#  provided in this distribution titled ETPRO-License.txt
+#
+
